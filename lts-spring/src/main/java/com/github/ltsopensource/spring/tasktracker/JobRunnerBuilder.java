@@ -15,11 +15,11 @@ public class JobRunnerBuilder {
 
     public static JobRunner build(final Object targetObject, final Method targetMethod, final Class<?>[] pTypes) {
 
-        return new JobRunner() {
+        return new JobRunner() {    //这里new出的一个对象是无状态的,线程安全的;
             @Override
             public Result run(JobContext jobContext) throws Throwable {
                 if (pTypes == null || pTypes.length == 0) {
-                    return (Result) targetMethod.invoke(targetObject);
+                    return (Result) targetMethod.invoke(targetObject);  //用反射调用目标bean的目标方法;
                 }
                 Object[] pTypeValues = new Object[pTypes.length];
 

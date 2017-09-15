@@ -16,13 +16,13 @@ package com.github.ltsopensource.core.commons.concurrent.limiter;
  * limitations under the License.
  */
 
+import com.github.ltsopensource.core.commons.concurrent.limiter.SmoothRateLimiter.SmoothBursty;
+import com.github.ltsopensource.core.commons.concurrent.limiter.SmoothRateLimiter.SmoothWarmingUp;
 import com.github.ltsopensource.core.commons.utils.Assert;
 import com.github.ltsopensource.core.commons.utils.StringUtils;
 
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import com.github.ltsopensource.core.commons.concurrent.limiter.SmoothRateLimiter.SmoothBursty;
-import com.github.ltsopensource.core.commons.concurrent.limiter.SmoothRateLimiter.SmoothWarmingUp;
 
 import static java.lang.Math.max;
 import static java.util.concurrent.TimeUnit.*;
@@ -126,9 +126,9 @@ public abstract class RateLimiter {
      * TODO(cpovirk): make SleepingStopwatch the last parameter throughout the class so that the
      * overloads follow the usual convention: Foo(int), Foo(int, SleepingStopwatch)
      */
-    static RateLimiter create(SleepingStopwatch stopwatch, double permitsPerSecond) {
-        RateLimiter rateLimiter = new SmoothBursty(stopwatch, 1.0 /* maxBurstSeconds */);
-        rateLimiter.setRate(permitsPerSecond);
+    static RateLimiter create(SleepingStopwatch stopwatch, double permitsPerSecond) {   //SleepingStopwatch 时间监控
+        RateLimiter rateLimiter = new SmoothBursty(stopwatch, 1.0 /* maxBurstSeconds */);   //SmoothBursty 平滑的一个限流模式; 1.0-->当许可未被使用,最大保留时间1秒
+        rateLimiter.setRate(permitsPerSecond);  //设置每秒钟的许可数
         return rateLimiter;
     }
 
@@ -220,7 +220,7 @@ public abstract class RateLimiter {
         Assert.isTrue(
                 permitsPerSecond > 0.0 && !Double.isNaN(permitsPerSecond), "rate must be positive");
         synchronized (mutex()) {
-            doSetRate(permitsPerSecond, stopwatch.readMicros());
+            doSetRate(permitsPerSecond, stopwatch.readMicros());    //设置rate
         }
     }
 
@@ -344,20 +344,20 @@ public abstract class RateLimiter {
         long timeoutMicros = max(unit.toMicros(timeout), 0);
         checkPermits(permits);
         long microsToWait;
-        synchronized (mutex()) {
-            long nowMicros = stopwatch.readMicros();
-            if (!canAcquire(nowMicros, timeoutMicros)) {
+        synchronized (mutex()) {    //synchronized 不允许并发
+            long nowMicros = stopwatch.readMicros();        //当前微秒数(当前是时间点 - 开始时间点)
+            if (!canAcquire(nowMicros, timeoutMicros)) {    //判断是否可以获得许可
                 return false;
-            } else {
+            } else {    //如果可以获取许可,计算等待时间并重置
                 microsToWait = reserveAndGetWaitLength(permits, nowMicros);
             }
         }
-        stopwatch.sleepMicrosUninterruptibly(microsToWait);
-        return true;
+        stopwatch.sleepMicrosUninterruptibly(microsToWait); //就是sleep一会,等到可以获取许可的时候返回成功;但是sleep时间到了,也要竞争cpu时间片段
+        return true;    //等待完毕,返回true,获取许可成功
     }
 
     private boolean canAcquire(long nowMicros, long timeoutMicros) {
-        return queryEarliestAvailable(nowMicros) - timeoutMicros <= nowMicros;
+        return queryEarliestAvailable(nowMicros) - timeoutMicros <= nowMicros;  //判断最早可以获取的许可 减去 超时时间, 如果小于当前时间则表示获取不到
     }
 
     /**
@@ -367,7 +367,7 @@ public abstract class RateLimiter {
      */
     final long reserveAndGetWaitLength(int permits, long nowMicros) {
         long momentAvailable = reserveEarliestAvailable(permits, nowMicros);
-        return max(momentAvailable - nowMicros, 0);
+        return max(momentAvailable - nowMicros, 0); //如果小于当前时间,则返回0
     }
 
     /**

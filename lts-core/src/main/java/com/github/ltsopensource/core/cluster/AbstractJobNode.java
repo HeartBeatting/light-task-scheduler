@@ -59,7 +59,7 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
         masterChangeListeners = new ArrayList<MasterChangeListener>();
     }
 
-    final public void start() {
+    final public void start() {     //每个节点启动都会调用start方法
         try {
             if (started.compareAndSet(false, true)) {
 
@@ -71,9 +71,9 @@ public abstract class AbstractJobNode<T extends Node, Context extends AppContext
                 // 初始化HttpCmdServer
                 initHttpCmdServer();
 
-                beforeRemotingStart();
+                beforeRemotingStart();      //注入remotingServer等
 
-                remotingStart();
+                remotingStart();    //启动客户端或者服务端,创建各种processer
 
                 afterRemotingStart();
 

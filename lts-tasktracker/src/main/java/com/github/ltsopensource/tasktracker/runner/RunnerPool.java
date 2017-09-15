@@ -65,7 +65,7 @@ public class RunnerPool {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Receive job success ! " + jobMeta);
             }
-        } catch (RejectedExecutionException e) {
+        } catch (RejectedExecutionException e) {    //线程池中任务已经满了
             LOGGER.warn("No more thread to run job .");
             throw new NoAvailableJobRunnerException(e);
         }

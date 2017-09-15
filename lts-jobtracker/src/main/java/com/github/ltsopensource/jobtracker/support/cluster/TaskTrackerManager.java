@@ -119,7 +119,7 @@ public class TaskTrackerManager {
         if (taskTrackerNodes != null && taskTrackerNodes.size() != 0) {
             for (TaskTrackerNode trackerNode : taskTrackerNodes) {
                 if (trackerNode.getIdentity().equals(identity) && (trackerNode.getTimestamp() == null || trackerNode.getTimestamp() <= timestamp)) {
-                    trackerNode.setAvailableThread(availableThreads);
+                    trackerNode.setAvailableThread(availableThreads);   //todo 是否有并发问题? 是由后台JobPullMachine单线程调用的,应该没有现成安全问题
                     trackerNode.setTimestamp(timestamp);
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("更新节点线程数: {}", trackerNode);

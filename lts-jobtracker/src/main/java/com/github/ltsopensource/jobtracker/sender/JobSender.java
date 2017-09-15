@@ -29,7 +29,9 @@ public class JobSender {
     }
 
     public SendResult send(String taskTrackerNodeGroup, String taskTrackerIdentity, int size, SendInvoker invoker) {
-
+        // 从mongo 中取一个可运行的job
+        // preLoader 会预先加载数据到缓存中,加快获取任务的速度
+        // @see MysqlPreLoader
         List<JobPo> jobPos = fetchJob(taskTrackerNodeGroup, taskTrackerIdentity, size);
         if (jobPos.size() == 0) {
             return new SendResult(false, JobPushResult.NO_JOB);

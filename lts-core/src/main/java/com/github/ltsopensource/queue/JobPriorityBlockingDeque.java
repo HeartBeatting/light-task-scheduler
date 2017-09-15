@@ -9,18 +9,20 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * 优先级 有界 去重 双向队列
  * @author Robert HG (254963746@qq.com) on 8/5/16.
+ *
+ * 实现线程安全的数据结构,最好的办法是基于现有的数据结构
  */
 public class JobPriorityBlockingDeque {
 
-    private final int capacity;
+    private final int capacity;             //实现有界的
 
-    private final LinkedList<JobPo> list;
-    private final ReentrantLock lock = new ReentrantLock();
+    private final LinkedList<JobPo> list;   //实现有序的
+    private final ReentrantLock lock = new ReentrantLock();         //实现线程安全的
 
     // Key: jobId     value:gmtModified
-    private Map<String, Long> jobs = new ConcurrentHashMap<String, Long>();
+    private Map<String, Long> jobs = new ConcurrentHashMap<String, Long>();     //保存jobs
 
-    private Comparator<JobPo> comparator;
+    private Comparator<JobPo> comparator;                           //比较优先级
 
     public JobPriorityBlockingDeque(int capacity) {
         if (capacity <= 0) throw new IllegalArgumentException();
@@ -29,18 +31,18 @@ public class JobPriorityBlockingDeque {
         this.comparator = new Comparator<JobPo>() {
             @Override
             public int compare(JobPo left, JobPo right) {
-                if (left.getJobId().equals(right.getJobId())) {
+                if (left.getJobId().equals(right.getJobId())) {     //jobId相同,代表是相同的任务,优先级相同
                     return 0;
                 }
-                int compare = left.getPriority().compareTo(right.getPriority());
+                int compare = left.getPriority().compareTo(right.getPriority());    //比较优先级
                 if (compare != 0) {
                     return compare;
                 }
-                compare = left.getTriggerTime().compareTo(right.getTriggerTime());
+                compare = left.getTriggerTime().compareTo(right.getTriggerTime());  //比较触发时间
                 if (compare != 0) {
                     return compare;
                 }
-                compare = left.getGmtCreated().compareTo(right.getGmtCreated());
+                compare = left.getGmtCreated().compareTo(right.getGmtCreated());    //比较创建时间
                 if (compare != 0) {
                     return compare;
                 }
@@ -91,13 +93,13 @@ public class JobPriorityBlockingDeque {
                 }
             }
 
-            int insertionPoint = Collections.binarySearch(list, e, comparator);
+            int insertionPoint = Collections.binarySearch(list, e, comparator);     //二分查找法
             if (insertionPoint < 0) {
                 // this means the key didn't exist, so the insertion point is negative minus 1.
                 insertionPoint = -insertionPoint - 1;
             }
 
-            list.add(insertionPoint, e);
+            list.add(insertionPoint, e);    //为什么要用LinkedList 就是因为要在中间插入节点,LinkedList适合这种操作
             jobs.put(e.getJobId(), e.getGmtModified());
             return true;
         } finally {
@@ -119,7 +121,7 @@ public class JobPriorityBlockingDeque {
         }
     }
 
-    public JobPo poll() {
+    public JobPo poll() {   //预加载数据的线程很少,这种比较粗的同步已经够了
         return pollFirst();
     }
 

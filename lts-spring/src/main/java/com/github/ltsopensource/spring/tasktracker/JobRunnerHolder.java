@@ -32,7 +32,7 @@ public class JobRunnerHolder {
         if (methods != null && methods.length > 0) {
             for (final Method method : methods) {
                 if (method.isAnnotationPresent(JobRunnerItem.class)) {
-                    JobRunnerItem jobRunnerItem = method.getAnnotation(JobRunnerItem.class);
+                    JobRunnerItem jobRunnerItem = method.getAnnotation(JobRunnerItem.class);    // 在JobRunnerItem获取shardValue
                     String shardValue = jobRunnerItem.shardValue();
                     if (StringUtils.isEmpty(shardValue)) {
                         LOGGER.error(clazz.getName() + ":" + method.getName() + " " + JobRunnerItem.class.getName() + " shardValue can not be null");

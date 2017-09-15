@@ -50,9 +50,9 @@ public class JobPushProcessor extends AbstractProcessor {
 
     protected JobPushProcessor(TaskTrackerAppContext appContext) {
         super(appContext);
-        this.remotingClient = appContext.getRemotingClient();
+        this.remotingClient = appContext.getRemotingClient();   //启动的时候,已经建立和远端的连接了
         // 线程安全的
-        jobRunnerCallback = new JobRunnerCallback();
+        jobRunnerCallback = new JobRunnerCallback();    //todo 为什么?
 
 
         if (isEnableFailStore()) {
@@ -139,16 +139,16 @@ public class JobPushProcessor extends AbstractProcessor {
                     @Override
                     public void operationComplete(ResponseFuture responseFuture) {
                         try {
-                            RemotingCommand commandResponse = responseFuture.getResponseCommand();
+                            RemotingCommand commandResponse = responseFuture.getResponseCommand();  //获取netty远程回调的结果
 
-                            if (commandResponse != null && commandResponse.getCode() == RemotingProtos.ResponseCode.SUCCESS.code()) {
+                            if (commandResponse != null && commandResponse.getCode() == RemotingProtos.ResponseCode.SUCCESS.code()) {   //请求成功
                                 JobPushRequest jobPushRequest = commandResponse.getBody();
-                                if (jobPushRequest != null) {
+                                if (jobPushRequest != null) {   //jobPushRequest不为空,表示获得新任务
                                     if (LOGGER.isDebugEnabled()) {
                                         LOGGER.debug("Get new job :{}", JSON.toJSONString(jobPushRequest.getJobMetaList()));
                                     }
                                     if (CollectionUtils.isNotEmpty(jobPushRequest.getJobMetaList())) {
-                                        returnResponse.setJobMeta(jobPushRequest.getJobMetaList().get(0));
+                                        returnResponse.setJobMeta(jobPushRequest.getJobMetaList().get(0));  //这里只会获得一个任务
                                     }
                                 }
                             } else {
@@ -156,8 +156,8 @@ public class JobPushProcessor extends AbstractProcessor {
                                     LOGGER.info("Job feedback failed, save local files。{}", jobRunResult);
                                 }
                                 try {
-                                    if (isEnableFailStore()) {
-                                        retryScheduler.inSchedule(
+                                    if (isEnableFailStore()) {  //开启本地暂存
+                                        retryScheduler.inSchedule(  //暂存到本地,等待重试
                                                 jobRunResult.getJobMeta().getJobId().concat("_") + SystemClock.now(),
                                                 jobRunResult);
                                     } else {

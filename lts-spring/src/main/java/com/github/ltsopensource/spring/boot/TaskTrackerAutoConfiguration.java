@@ -3,7 +3,6 @@ package com.github.ltsopensource.spring.boot;
 import com.github.ltsopensource.core.cluster.AbstractJobNode;
 import com.github.ltsopensource.core.cluster.NodeType;
 import com.github.ltsopensource.core.commons.utils.CollectionUtils;
-import com.github.ltsopensource.core.commons.utils.StringUtils;
 import com.github.ltsopensource.spring.boot.annotation.EnableTaskTracker;
 import com.github.ltsopensource.spring.boot.annotation.JobRunner4TaskTracker;
 import com.github.ltsopensource.spring.boot.properties.TaskTrackerProperties;
@@ -27,6 +26,8 @@ import java.util.Map;
 
 /**
  * @author Robert HG (254963746@qq.com) on 4/9/16.
+ * 使用这个类或者使用com.github.ltsopensource.spring.tasktracker.Scanner
+ * 这个是Spring-boot的实现方式
  */
 @Configuration
 @ConditionalOnBean(annotation = EnableTaskTracker.class)

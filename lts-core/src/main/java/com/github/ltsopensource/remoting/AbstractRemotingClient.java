@@ -62,7 +62,7 @@ public abstract class AbstractRemotingClient extends AbstractRemoting implements
             @Override
             public void run() {
                 try {
-                    AbstractRemotingClient.this.scanResponseTable();
+                    AbstractRemotingClient.this.scanResponseTable();    //好像是释放超时的操作的信号量
                 } catch (Exception e) {
                     LOGGER.error("scanResponseTable exception", e);
                 }

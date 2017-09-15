@@ -261,9 +261,9 @@ abstract class SmoothRateLimiter extends RateLimiter {
         }
 
         @Override
-        void doSetRate(double permitsPerSecond, double stableIntervalMicros) {
-            double oldMaxPermits = this.maxPermits;
-            maxPermits = maxBurstSeconds * permitsPerSecond;
+        void doSetRate(double permitsPerSecond, double stableIntervalMicros) {  //方法看来可以动态的修改QPS
+            double oldMaxPermits = this.maxPermits;             // 老的最大许可
+            maxPermits = maxBurstSeconds * permitsPerSecond;    // 最大许可 = 保持的最长时间 X 每秒许可数
             if (oldMaxPermits == Double.POSITIVE_INFINITY) {
                 // if we don't special-case this, we would get storedPermits == NaN, below
                 storedPermits = maxPermits;
@@ -287,11 +287,13 @@ abstract class SmoothRateLimiter extends RateLimiter {
 
     /**
      * The currently stored permits.
+     * 当前存储的许可
      */
     double storedPermits;
 
     /**
      * The maximum number of stored permits.
+     * 存储的最大许可数
      */
     double maxPermits;
 
@@ -299,6 +301,7 @@ abstract class SmoothRateLimiter extends RateLimiter {
      * The interval between two unit requests, at our stable rate. E.g., a stable rate of 5 permits
      * per second has a stable interval of 200ms.
      */
+    //稳定平均的间隔时间
     double stableIntervalMicros;
 
     /**
@@ -306,15 +309,16 @@ abstract class SmoothRateLimiter extends RateLimiter {
      * request, this is pushed further in the future. Large requests push this further than small
      * requests.
      */
-    private long nextFreeTicketMicros = 0L; // could be either in the past or future
+    //下次能够获取到许可的时间点, 不管许可的大小; 但是获取许可越多, 就会把下次许可的获取时间推迟的越靠后,每次获取许可之后,都会重置下次可获取的时间点,目的是把下次可获取的时间点平均分散到整个时间段内
+    private long nextFreeTicketMicros = 0L; // could be either in the past or future 可以在当前时间之前或之后
 
     private SmoothRateLimiter(SleepingStopwatch stopwatch) {
         super(stopwatch);
     }
 
     @Override
-    final void doSetRate(double permitsPerSecond, long nowMicros) {
-        resync(nowMicros);
+    final void doSetRate(double permitsPerSecond, long nowMicros) {     //permitsPerSecond 每秒的许可数
+        resync(nowMicros);  //第一次设置rate的时候,也会重置几个参数
         double stableIntervalMicros = SECONDS.toMicros(1L) / permitsPerSecond;
         this.stableIntervalMicros = stableIntervalMicros;
         doSetRate(permitsPerSecond, stableIntervalMicros);
@@ -332,21 +336,32 @@ abstract class SmoothRateLimiter extends RateLimiter {
         return nextFreeTicketMicros;
     }
 
+    /**
+     * 重置最早的可以获取的许可
+     * 每次调用reserveEarliestAvailable方法都会更新
+     *
+     * 1. resync -- 重置 storedPermits 和 nextFreeTicketMicros
+     * 2. this.nextFreeTicketMicros 重置下下次空闲的时间点
+     * 3. this.storedPermits 减去 待执行的许可
+     * @param requiredPermits
+     * @param nowMicros
+     * @return
+     */
     @Override
     final long reserveEarliestAvailable(int requiredPermits, long nowMicros) {
-        resync(nowMicros);
-        long returnValue = nextFreeTicketMicros;
-        double storedPermitsToSpend = min(requiredPermits, this.storedPermits);
-        double freshPermits = requiredPermits - storedPermitsToSpend;
-        long waitMicros = storedPermitsToWaitTime(this.storedPermits, storedPermitsToSpend)
-                + (long) (freshPermits * stableIntervalMicros);
+        resync(nowMicros);  //重置许可和时间点
+        long returnValue = nextFreeTicketMicros;    //下一次空闲的时间点
+        double storedPermitsToSpend = min(requiredPermits, this.storedPermits); //保存将要消费的许可, 是存储和需要的许可中较小的一个
+        double freshPermits = requiredPermits - storedPermitsToSpend;   //如果storedPermitsToSpend为storedPermits,则为新增的许可; 否则等于0
+        long waitMicros = storedPermitsToWaitTime(this.storedPermits, storedPermitsToSpend)     //将要消费的许可需要的时间
+                + (long) (freshPermits * stableIntervalMicros);         //新增的许可消费需要的时间
 
         try {
-            this.nextFreeTicketMicros = checkedAdd(nextFreeTicketMicros, waitMicros);
-        } catch (ArithmeticException e) {
+            this.nextFreeTicketMicros = checkedAdd(nextFreeTicketMicros, waitMicros);   //在返回前,重置下下次空闲的时间点 (这个时间点是每次重置释放的时间点吧)
+        } catch (ArithmeticException e) {   //抛异常,说明溢出了
             this.nextFreeTicketMicros = Long.MAX_VALUE;
         }
-        this.storedPermits -= storedPermitsToSpend;
+        this.storedPermits -= storedPermitsToSpend;     //更新存储的许可 = 存储的许可 - 待消费的许可
         return returnValue;
     }
 
@@ -370,18 +385,21 @@ abstract class SmoothRateLimiter extends RateLimiter {
 
     /**
      * Returns the number of microseconds during cool down that we have to wait to get a new permit.
+     * 等待新许可的时间(微秒)
      */
-    abstract double coolDownIntervalMicros();
+    abstract double coolDownIntervalMicros();   //就是稳定的平均间隔时间
 
     /**
      * Updates {@code storedPermits} and {@code nextFreeTicketMicros} based on the current time.
+     * 根据当前时间, 更新存储的许可和下次可用的时间
      */
-    void resync(long nowMicros) {
+    void resync(long nowMicros) {   //重置时间点
         // if nextFreeTicket is in the past, resync to now
+        // 如果下一次空闲时间点 在 当前时间之前, 则重置下次空闲时间为now; 这是因为这几个属性都是在acquire时才更新的,如果长时间没请求,空闲时间就会在当前时间之前了
         if (nowMicros > nextFreeTicketMicros) {
             storedPermits = min(maxPermits,
                     storedPermits
-                            + (nowMicros - nextFreeTicketMicros) / coolDownIntervalMicros());
+                            + (nowMicros - nextFreeTicketMicros) / coolDownIntervalMicros());   //把这期间没有消费的许可再加上, 但是最大不能超过最大许可数; storedPermits就是靠超过了下次时间,然后会添加相应的许可
             nextFreeTicketMicros = nowMicros;
         }
     }

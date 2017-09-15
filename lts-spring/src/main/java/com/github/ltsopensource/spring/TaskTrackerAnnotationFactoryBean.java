@@ -27,7 +27,7 @@ import java.util.Properties;
 
 /**
  * TaskTracker Spring Bean 工厂类
- * 如果用这个工厂类，那么JobRunner中引用SpringBean的话,只有通过注解的方式注入
+ * //TODO 如果用这个工厂类，那么JobRunner中引用SpringBean的话,只有通过注解的方式注入? 为什么?
  *
  * @author Robert HG (254963746@qq.com) on 8/4/15.
  */
@@ -172,6 +172,8 @@ public class TaskTrackerAnnotationFactoryBean implements FactoryBean<TaskTracker
 
     /**
      * 可以自己得到TaskTracker对象后调用，也可以直接使用spring配置中的init属性指定该方法
+     *
+     * Spring执行步骤,先创建bean,然后set各种properties, 然后调用init-method:start
      */
     public void start() {
         if (!started) {

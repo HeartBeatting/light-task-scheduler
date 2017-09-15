@@ -19,16 +19,16 @@ import java.util.concurrent.Executors;
  */
 public abstract class AbstractServerNode<T extends Node, App extends AppContext> extends AbstractJobNode<T, App> {
 
-    protected RemotingServerDelegate remotingServer;
+    protected RemotingServerDelegate remotingServer;    //remotingServer的代理
 
     protected void remotingStart() {
 
-        remotingServer.start();
+        remotingServer.start(); //netty server启动??
 
-        RemotingProcessor defaultProcessor = getDefaultProcessor();
+        RemotingProcessor defaultProcessor = getDefaultProcessor(); //创建当前节点下各种processer
         if (defaultProcessor != null) {
             int processorSize = config.getParameter(ExtConfig.PROCESSOR_THREAD, Constants.DEFAULT_PROCESSOR_THREAD);
-            remotingServer.registerDefaultProcessor(defaultProcessor,
+            remotingServer.registerDefaultProcessor(defaultProcessor,   //创建各种processer公共的线程池
                     Executors.newFixedThreadPool(processorSize, new NamedThreadFactory(AbstractServerNode.class.getSimpleName(), true)));
         }
     }

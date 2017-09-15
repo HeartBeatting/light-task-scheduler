@@ -23,7 +23,7 @@ public class JobSubmitProcessor extends AbstractRemotingProcessor {
         super(appContext);
     }
 
-    @Override
+    @Override   //job-tracker接收job-client的任务
     public RemotingCommand processRequest(Channel channel, RemotingCommand request) throws RemotingCommandException {
 
         JobSubmitRequest jobSubmitRequest = request.getBody();

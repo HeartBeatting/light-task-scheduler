@@ -59,7 +59,7 @@ public class JobPullMachine {
                         new Observer() {
                             @Override
                             public void onObserved(EventInfo eventInfo) {
-                                if (EcTopic.JOB_TRACKER_AVAILABLE.equals(eventInfo.getTopic())) {
+                                if (EcTopic.JOB_TRACKER_AVAILABLE.equals(eventInfo.getTopic())) {   //todo event
                                     // JobTracker 可用了
                                     start();
                                 } else if (EcTopic.NO_JOB_TRACKER_AVAILABLE.equals(eventInfo.getTopic())) {
@@ -68,8 +68,8 @@ public class JobPullMachine {
                             }
                         }), EcTopic.JOB_TRACKER_AVAILABLE, EcTopic.NO_JOB_TRACKER_AVAILABLE);
         this.worker = new Runnable() {
-            @Override
-            public void run() {
+            @Override               // taskTracker的原理: 就是每隔1秒向jobTracker请求一次,jobTracker会分配任务; 每处理完一个任务也会去领取下一个任务; 这样任务多的时候,可以满负荷的跑任务;
+            public void run() {     // 每隔一秒去领取任务时,jobTracker会根据taskTracker的可用线程数分配任务
                 try {
                     if (!start.get()) {
                         return;
@@ -188,7 +188,7 @@ public class JobPullMachine {
             LOGGER.warn("Check Machine Resource error", e);
             return true;
         } finally {
-            Boolean machineResEnough = appContext.getConfig().getInternalData(Constants.MACHINE_RES_ENOUGH, true);
+            Boolean machineResEnough = appContext.getConfig().getInternalData(Constants.MACHINE_RES_ENOUGH, true);  //每隔一秒钟放一次
             if (machineResEnough != enough) {
                 appContext.getConfig().setInternalData(Constants.MACHINE_RES_ENOUGH, enough);
             }

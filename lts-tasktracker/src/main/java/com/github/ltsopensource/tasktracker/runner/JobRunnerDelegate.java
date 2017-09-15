@@ -73,7 +73,7 @@ public class JobRunnerDelegate implements Runnable {
 
             LtsLoggerFactory.setLogger(logger);
 
-            while (jobMeta != null) {
+            while (jobMeta != null) {   // 只要一直有任务,线程就一直跑,保证taskTask的满负载
                 long startTime = SystemClock.now();
                 // 设置当前context中的jobId
                 logger.setJobMeta(jobMeta);
@@ -118,10 +118,10 @@ public class JobRunnerDelegate implements Runnable {
                 // 统计数据
                 stat(response.getAction());
 
-                if (isStopToGetNewJob()) {
+                if (isStopToGetNewJob()) {  // 判断是否资源充足
                     response.setReceiveNewJob(false);
                 }
-                this.jobMeta = callback.runComplete(response);
+                this.jobMeta = callback.runComplete(response);  //请求新的任务
                 DotLogUtils.dot("JobRunnerDelegate.run get job " + (this.jobMeta == null ? "NULL" : "NOT_NULL"));
             }
         } finally {

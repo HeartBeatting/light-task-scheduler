@@ -50,14 +50,14 @@ public class MysqlPreLoader extends AbstractPreLoader {
             return new UpdateSql(sqlTemplate)
                     .update()
                     .table(getTableName(taskTrackerNodeGroup))
-                    .set("is_running", true)
+                    .set("is_running", true)                            //设置任务正在执行中,锁定任务;
                     .set("task_tracker_identity", taskTrackerIdentity)
                     .set("gmt_modified", SystemClock.now())
                     .where("job_id = ?", jobId)
                     .and("is_running = ?", false)
                     .and("trigger_time = ?", triggerTime)
                     .and("gmt_modified = ?", gmtModified)
-                    .doUpdate() == 1;
+                    .doUpdate() == 1;                                   //Sql执行是原子性的,一条sql执行成功返回1,其他执行sql都会返回0;
         } catch (Exception e) {
             LOGGER.error("Error when lock job:" + e.getMessage(), e);
             return false;
