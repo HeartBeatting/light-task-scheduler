@@ -27,8 +27,8 @@ import java.net.SocketAddress;
 public class NettyRemotingClient extends AbstractRemotingClient {
     private static final Logger LOGGER = LoggerFactory.getLogger(NettyRemotingClient.class);
 
-    private final Bootstrap bootstrap = new Bootstrap();
-    private final EventLoopGroup eventLoopGroup;
+    private final Bootstrap bootstrap = new Bootstrap();            //netty客户端启动工具类
+    private final EventLoopGroup eventLoopGroup;                    //netty线程组
     private DefaultEventExecutorGroup defaultEventExecutorGroup;
     private AppContext appContext;
 

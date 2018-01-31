@@ -21,14 +21,14 @@ public class Scanner implements DisposableBean, BeanFactoryPostProcessor, BeanPo
 
     private String[] annotationPackages;
 
-    public void setBasePackage(String annotationPackage) {
+    public void setBasePackage(String annotationPackage) {                                                  // 可以申明一个bean,并制定扫描的路径
         this.annotationPackages = (annotationPackage == null || annotationPackage.length() == 0) ? null
                 : Pattern.compile("\\s*[,]+\\s*").split(annotationPackage);
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException { // bean实例化时会调用这个接口方法(1) - 这个是顺序步骤编号.
+        // 这里其实就是让Spring扫描指定的包路径,扫描好了,bean的definition就都有了
         if (beanFactory instanceof BeanDefinitionRegistry) {
             try {
                 // init scanner
@@ -49,26 +49,26 @@ public class Scanner implements DisposableBean, BeanFactoryPostProcessor, BeanPo
     }
 
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {         // (2) bean实例化之前
         return bean;
     }
 
     @Override
-    public Object postProcessAfterInitialization(final Object bean, String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(final Object bean, String beanName) throws BeansException {    // (3) bean实例化之后
 
         Class<?> clazz = bean.getClass();
 
-        if (!isMatchPackage(clazz)) {
+        if (!isMatchPackage(clazz)) {                   // 过滤包路径
             return bean;
         }
 
-        if (!clazz.isAnnotationPresent(LTS.class)) {
+        if (!clazz.isAnnotationPresent(LTS.class)) {    // 判断是否标记了LTS注解
             return bean;
         }
 
-        JobRunnerHolder.addLTSBean(bean);
+        JobRunnerHolder.addLTSBean(bean);               // 标记了注解, 需要将bean加到lts缓存的Map中, 建立任务类型和处理bean之间的映射关系.
 
-        return bean;
+        return bean;                                    // bean原封不变的返回了
     }
 
     @Override

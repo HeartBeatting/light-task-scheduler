@@ -38,7 +38,7 @@ public abstract class AbstractMStatReporter implements MStatReporter {
         this.config = appContext.getConfig();
     }
 
-    public final void start() {
+    public final void start() {     // JobClient,JobTracker,TaskTracker启动的时候都会调用这个start方法,用于监控当前的JVM一些性能.
 
         // 启动JVM监控
         JVMMonitor.start();

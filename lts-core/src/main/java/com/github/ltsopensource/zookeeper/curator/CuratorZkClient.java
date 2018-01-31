@@ -32,15 +32,15 @@ public class CuratorZkClient extends AbstractZkClient<CuratorZkClient.PathChildr
     private final ZkSerializer zkSerializer;
 
     public CuratorZkClient(Config config) {
-        String registryAddress = NodeRegistryUtils.getRealRegistryAddress(config.getRegistryAddress());
+        String registryAddress = NodeRegistryUtils.getRealRegistryAddress(config.getRegistryAddress()); // 根据config解析出真正的ip地址
         CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                 .connectString(registryAddress)
-                .retryPolicy(new RetryNTimes(Integer.MAX_VALUE, 1000))
-                .connectionTimeoutMs(5000);
+                .retryPolicy(new RetryNTimes(Integer.MAX_VALUE, 1000))              // 连接重试策略:1秒重试一次,无限重试
+                .connectionTimeoutMs(5000);                                                             // 超时
 
-        client = builder.build();
+        client = builder.build();   // 创建一个客户端
 
-        client.getConnectionStateListenable().addListener(new ConnectionStateListener() {
+        client.getConnectionStateListenable().addListener(new ConnectionStateListener() {   // 监听连接状态
             public void stateChanged(CuratorFramework client, ConnectionState state) {
                 if (state == ConnectionState.LOST) {
                     CuratorZkClient.this.stateChanged(StateListener.DISCONNECTED);
@@ -63,7 +63,7 @@ public class CuratorZkClient extends AbstractZkClient<CuratorZkClient.PathChildr
     protected String createPersistent(String path, boolean sequential) {
         try {
             if (sequential) {
-                return client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(path);
+                return client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(path);    // 创建有序的持久化节点
             } else {
                 return client.create().withMode(CreateMode.PERSISTENT).forPath(path);
             }

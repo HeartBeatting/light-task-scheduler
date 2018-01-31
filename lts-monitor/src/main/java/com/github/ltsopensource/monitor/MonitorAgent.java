@@ -7,7 +7,7 @@ import com.github.ltsopensource.core.cmd.StatusCheckHttpCmd;
 import com.github.ltsopensource.core.commons.utils.NetUtils;
 import com.github.ltsopensource.core.commons.utils.StringUtils;
 import com.github.ltsopensource.core.compiler.AbstractCompiler;
-import com.github.ltsopensource.core.constant.Constants;
+import com.github.ltsopensource.core.constant.ExtConfig;
 import com.github.ltsopensource.core.factory.JobNodeConfigFactory;
 import com.github.ltsopensource.core.factory.NodeFactory;
 import com.github.ltsopensource.core.json.JSONFactory;
@@ -18,7 +18,6 @@ import com.github.ltsopensource.core.registry.Registry;
 import com.github.ltsopensource.core.registry.RegistryFactory;
 import com.github.ltsopensource.core.registry.RegistryStatMonitor;
 import com.github.ltsopensource.core.spi.ServiceLoader;
-import com.github.ltsopensource.core.constant.ExtConfig;
 import com.github.ltsopensource.core.support.AliveKeeping;
 import com.github.ltsopensource.ec.EventCenter;
 import com.github.ltsopensource.jvmmonitor.JVMMonitor;
@@ -49,7 +48,7 @@ public class MonitorAgent {
         this.appContext.setConfig(config);
     }
 
-    public void start() {
+    public void start() {   //这个是monitor节点的启动的时候会调用
 
         if (!start.compareAndSet(false, true)) {
             return;
@@ -79,7 +78,7 @@ public class MonitorAgent {
             initRegistry();
             registry.register(node);
 
-            JVMMonitor.start();
+            JVMMonitor.start();     //用于监控当前monitor节点的jvm情况.
             AliveKeeping.start();
 
             LOGGER.info("========== Start Monitor Success");

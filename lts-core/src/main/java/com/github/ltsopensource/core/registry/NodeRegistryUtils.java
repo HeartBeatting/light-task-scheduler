@@ -125,7 +125,7 @@ public class NodeRegistryUtils {
         if (StringUtils.isEmpty(registryAddress)) {
             throw new IllegalArgumentException("registryAddress is null！");
         }
-        if (registryAddress.startsWith("zookeeper://")) {
+        if (registryAddress.startsWith("zookeeper://")) {                       // 这里代表了不同的注册中心
             return registryAddress.replace("zookeeper://", "");
         } else if (registryAddress.startsWith("redis://")) {
             return registryAddress.replace("redis://", "");

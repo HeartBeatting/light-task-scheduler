@@ -28,7 +28,7 @@ public abstract class AbstractZkClient<TargetChildListener, TargetDataListener> 
 
     private volatile boolean closed = false;
 
-    public String create(String path, boolean ephemeral, boolean sequential) {
+    public String create(String path, boolean ephemeral, boolean sequential) {  // 递归创建节点路径
         int i = path.lastIndexOf('/');
         if (i > 0) {
             create(path.substring(0, i), false, false);

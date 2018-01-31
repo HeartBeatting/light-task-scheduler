@@ -32,7 +32,7 @@ public class JVMMonitor {
     private static AtomicLong refCount;
 
     static {
-        String className = JVMMonitor.class.getName() + "$JVMMonitorReferenceCount";
+        String className = JVMMonitor.class.getName() + "$JVMMonitorReferenceCount";    //todo 这里是想干嘛? 好像是想利用jvm的静态发布?
         try {
             Class clazz = CrossClassLoader.loadClass(className);
             Field refCountField = clazz.getDeclaredField("REF_COUNT");
@@ -50,20 +50,20 @@ public class JVMMonitor {
 
     private final static Map<String, Object> MONITOR_MAP = new HashMap<String, Object>();
 
-    public static void start() {
+    public static void start() {    //这是一个静态方法,可以直接调用
         getRefCount().incrementAndGet();
-        if (start.compareAndSet(false, true)) {
+        if (start.compareAndSet(false, true)) {     //防止重复调用
             if (CollectionUtils.isEmpty(MONITOR_MAP)) {
                 MONITOR_MAP.put(JVMConstants.JMX_JVM_INFO_NAME, JVMInfo.getInstance());
                 MONITOR_MAP.put(JVMConstants.JMX_JVM_MEMORY_NAME, JVMMemory.getInstance());
                 MONITOR_MAP.put(JVMConstants.JMX_JVM_GC_NAME, JVMGC.getInstance());
-                MONITOR_MAP.put(JVMConstants.JMX_JVM_THREAD_NAME, JVMThread.getInstance());
+                MONITOR_MAP.put(JVMConstants.JMX_JVM_THREAD_NAME, JVMThread.getInstance()); //这里的JVMThread.getInstance()是一个单例,一个JVM只有一个对象.
             }
             try {
                 for (Map.Entry<String, Object> entry : MONITOR_MAP.entrySet()) {
                     ObjectName objectName = new ObjectName(entry.getKey());
                     if (!MBEAN_SERVER.isRegistered(objectName)) {
-                        MBEAN_SERVER.registerMBean(entry.getValue(), objectName);
+                        MBEAN_SERVER.registerMBean(entry.getValue(), objectName);   //都注册到MBEAN_SERVER,后面可以直接获取
                     }
                 }
                 LOGGER.info("Start JVMMonitor succeed ");

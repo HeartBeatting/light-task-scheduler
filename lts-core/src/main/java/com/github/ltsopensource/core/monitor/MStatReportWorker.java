@@ -30,7 +30,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 /**
  * @author Robert HG (254963746@qq.com) on 3/11/16.
  */
-public class MStatReportWorker implements Runnable {
+public class MStatReportWorker implements Runnable {    //用于每分钟统计一次系统资源情况.
 
     protected final Logger LOGGER = LoggerFactory.getLogger(MStatReportWorker.class);
 
