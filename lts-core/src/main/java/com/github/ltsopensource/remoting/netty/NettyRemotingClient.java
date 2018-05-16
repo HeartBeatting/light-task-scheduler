@@ -65,7 +65,7 @@ public class NettyRemotingClient extends AbstractRemotingClient {
                         nettyCodecFactory.getEncoder(),
                         nettyCodecFactory.getDecoder(),
                         new IdleStateHandler(remotingClientConfig.getReaderIdleTimeSeconds(), remotingClientConfig.getWriterIdleTimeSeconds(), remotingClientConfig.getClientChannelMaxIdleTimeSeconds()),//
-                        new NettyConnectManageHandler(),
+                        new NettyConnectManageHandler(),    // todo
                         new NettyClientHandler());
             }
         });

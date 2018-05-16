@@ -79,7 +79,7 @@ public class JobClient<T extends JobClientNode, Context extends AppContext> exte
         return protectSubmit(Collections.singletonList(job));
     }
 
-    private Response protectSubmit(List<Job> jobs) throws JobSubmitException {  //todo 怎么通过netty提交任务的?
+    private Response protectSubmit(List<Job> jobs) throws JobSubmitException {
         return protector.execute(jobs, new JobSubmitExecutor<Response>() {
             @Override
             public Response execute(List<Job> jobs) throws JobSubmitException {

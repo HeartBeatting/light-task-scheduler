@@ -72,7 +72,7 @@ public class NettyCodecFactory {
 
                 byte[] tmpBuf = new byte[frame.capacity()];
                 frame.getBytes(0, tmpBuf);
-                frame.release();
+                frame.release();    // todo 联系ByteBuf看下了?
 
                 ByteBuffer byteBuffer = ByteBuffer.wrap(tmpBuf);
                 return codec.decode(byteBuffer);

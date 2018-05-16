@@ -20,7 +20,7 @@ public class NettyChannelHandler implements ChannelHandler {
     @Override
     public ChannelHandler addListener(final ChannelHandlerListener listener) {
 
-        channelFuture.addListener(new ChannelFutureListener() {
+        channelFuture.addListener(new ChannelFutureListener() {     // 这里是添加了netty的listener
             @Override
             public void operationComplete(final ChannelFuture future) throws Exception {
                 listener.operationComplete(new Future() {

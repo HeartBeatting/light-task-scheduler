@@ -48,7 +48,7 @@ public class Scanner implements DisposableBean, BeanFactoryPostProcessor, BeanPo
         }
     }
 
-    @Override
+    @Override   // todo 看看LTS利用spring有哪些地方利用了什么?
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {         // (2) bean实例化之前
         return bean;
     }

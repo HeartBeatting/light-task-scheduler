@@ -13,7 +13,7 @@ import java.net.SocketAddress;
  */
 public class NettyChannel implements com.github.ltsopensource.remoting.Channel {
 
-    private Channel channel;
+    private Channel channel;    // 内部聚合了一个netty的channel
 
     public NettyChannel(ChannelHandlerContext ctx) {
         this.channel = ctx.channel();
@@ -36,12 +36,12 @@ public class NettyChannel implements com.github.ltsopensource.remoting.Channel {
     @Override
     public ChannelHandler writeAndFlush(Object msg) {
         ChannelFuture channelFuture = channel.writeAndFlush(msg);
-        return new NettyChannelHandler(channelFuture);
+        return new NettyChannelHandler(channelFuture);  // NettyChannelHandler可以添加回调方法的.
     }
 
     @Override
     public ChannelHandler close() {
-        return new NettyChannelHandler(channel.close());
+        return new NettyChannelHandler(channel.close());    // 这个返回的也是一个NettyChannelHandler,可以添加listener
     }
 
     public boolean isConnected() {

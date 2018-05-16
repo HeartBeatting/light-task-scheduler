@@ -32,7 +32,7 @@ public class JVMMonitor {
     private static AtomicLong refCount;
 
     static {
-        String className = JVMMonitor.class.getName() + "$JVMMonitorReferenceCount";    //todo 这里是想干嘛? 好像是想利用jvm的静态发布?
+        String className = JVMMonitor.class.getName() + "$JVMMonitorReferenceCount";
         try {
             Class clazz = CrossClassLoader.loadClass(className);
             Field refCountField = clazz.getDeclaredField("REF_COUNT");

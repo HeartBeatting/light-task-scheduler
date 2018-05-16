@@ -49,12 +49,12 @@ public class MysqlPreLoader extends AbstractPreLoader {
         try {
             return new UpdateSql(sqlTemplate)
                     .update()
-                    .table(getTableName(taskTrackerNodeGroup))
-                    .set("is_running", true)                            //设置任务正在执行中,锁定任务;
+                    .table(getTableName(taskTrackerNodeGroup))          // getTableName返回的表名是lts_wjq_xxx,这些表是待执行的任务表.
+                    .set("is_running", true)                            // 设置任务正在执行中,锁定任务
                     .set("task_tracker_identity", taskTrackerIdentity)
                     .set("gmt_modified", SystemClock.now())
                     .where("job_id = ?", jobId)
-                    .and("is_running = ?", false)
+                    .and("is_running = ?", false)           // 修改is_running为false的
                     .and("trigger_time = ?", triggerTime)
                     .and("gmt_modified = ?", gmtModified)
                     .doUpdate() == 1;                                   //Sql执行是原子性的,一条sql执行成功返回1,其他执行sql都会返回0;

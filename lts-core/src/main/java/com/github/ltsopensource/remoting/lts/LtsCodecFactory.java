@@ -29,7 +29,7 @@ public class LtsCodecFactory {
     public class NioEncoder implements Encoder {
 
         @Override
-        public ByteBuffer encode(NioChannel channel, Object msg) {
+        public ByteBuffer encode(NioChannel channel, Object msg) {  // LTS里用的就是原生的ByteBuffer.
 
             if (msg == null) {
                 LOGGER.error("Message is null");
@@ -56,7 +56,7 @@ public class LtsCodecFactory {
         protected Object decode(NioChannel ch, byte[] frame) throws Exception {
             ByteBuffer byteBuffer = ByteBuffer.wrap(frame);
             try {
-                return codec.decode(byteBuffer);
+                return codec.decode(byteBuffer);        // 将byte解码为object对象.
             } catch (Exception e) {
                 Channel channel = new LtsChannel(ch);
                 LOGGER.error("decode exception, {}", RemotingHelper.parseChannelRemoteAddr(channel), e);

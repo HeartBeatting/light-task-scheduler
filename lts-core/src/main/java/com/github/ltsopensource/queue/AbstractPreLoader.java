@@ -66,19 +66,19 @@ public abstract class AbstractPreLoader implements PreLoader {
                 @Override
                 public void run() {
                     AtomicBoolean loading = LOADING.get(loadTaskTrackerNodeGroup);
-                    if (loading == null) {
-                        loading = new AtomicBoolean(false);
-                        AtomicBoolean _loading = LOADING.putIfAbsent(loadTaskTrackerNodeGroup, loading);
-                        if (_loading != null) {
-                            loading = _loading;
+                        if (loading == null) {
+                            loading = new AtomicBoolean(false);
+                            AtomicBoolean _loading = LOADING.putIfAbsent(loadTaskTrackerNodeGroup, loading);
+                            if (_loading != null) {
+                                loading = _loading;
+                            }
                         }
-                    }
-                    if (loading.compareAndSet(false, true)) {
-                        try {
-                            handleSignal(loadTaskTrackerNodeGroup);
-                        } finally {
-                            loading.compareAndSet(true, false);
-                        }
+                        if (loading.compareAndSet(false, true)) {
+                            try {
+                                handleSignal(loadTaskTrackerNodeGroup);
+                            } finally {
+                                loading.compareAndSet(true, false);
+                            }
                     }
                 }
             }).start();
@@ -118,7 +118,7 @@ public abstract class AbstractPreLoader implements PreLoader {
                 PeriodUtils.start();
                 try {
                     for (JobPo load : loads) {
-                        if (!queue.offer(load)) {
+                        if (!queue.offer(load)) {   // queue的offer等方法都是要获取lock锁的,可以保证线程安全.
                             // 没有成功说明已经满了
                             if (force) {
                                 // force场景，移除队列尾部的，插入新的
@@ -139,7 +139,7 @@ public abstract class AbstractPreLoader implements PreLoader {
 
     public JobPo take(String taskTrackerNodeGroup, String taskTrackerIdentity) {
         while (true) {
-            JobPo jobPo = get(taskTrackerNodeGroup);
+            JobPo jobPo = get(taskTrackerNodeGroup);                    // 这里的get操作是从内存中的队列中获取job任务
             if (jobPo == null) {
                 DotLogUtils.dot("Empty JobQueue, taskTrackerNodeGroup:{}, taskTrackerIdentity:{}", taskTrackerNodeGroup, taskTrackerIdentity);
                 return null;
@@ -147,7 +147,7 @@ public abstract class AbstractPreLoader implements PreLoader {
             // update jobPo
             PeriodUtils.start();
             try {
-                if (lockJob(taskTrackerNodeGroup, jobPo.getJobId(),
+                if (lockJob(taskTrackerNodeGroup, jobPo.getJobId(),     // 上面获取到的任务,这里用lockJob加锁了,防止多个线程获取到同一个任务
                         taskTrackerIdentity, jobPo.getTriggerTime(),
                         jobPo.getGmtModified())) {
                     jobPo.setTaskTrackerIdentity(taskTrackerIdentity);
@@ -211,7 +211,7 @@ public abstract class AbstractPreLoader implements PreLoader {
 
         int size = queue.size();
         DotLogUtils.dot("AbstractPreLoader.queue size:{},taskTrackerNodeGroup:{}", size, taskTrackerNodeGroup);
-        if (isInFactor(size)) {
+        if (isInFactor(size)) {     // 判断是否到触发的点了
             // 触发加载的请求
             if (!LOAD_SIGNAL.contains(taskTrackerNodeGroup)) {
                 LOAD_SIGNAL.add(taskTrackerNodeGroup);
